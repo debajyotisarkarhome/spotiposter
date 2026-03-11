@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest add button input card -y 2>&1 | tail -10)",
+      "Bash(npx tsc:*)",
+      "Bash(cp -r /d/repos/spotiposter/@/components/ui/* /d/repos/spotiposter/src/components/ui/ && rm -rf /d/repos/spotiposter/@)",
+      "Bash(npx vite:*)",
+      "Bash(npm uninstall:*)"
+    ]
+  }
+}
