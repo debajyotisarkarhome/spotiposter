@@ -86,7 +86,7 @@ export default function Poster({ album }: PosterProps) {
         imgWidth = imgHeight * posterRatio;
       }
       const x = (pageWidth - imgWidth) / 2;
-      const y = (pageHeight - imgHeight) / 2;
+      const y = 0;
       pdf.addImage(dataUrl, "PNG", x, y, imgWidth, imgHeight);
       pdf.save(`${filename}_poster.pdf`);
     } catch (err) {
