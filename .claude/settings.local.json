@@ -7,7 +7,8 @@
       "Bash(cp -r /d/repos/spotiposter/@/components/ui/* /d/repos/spotiposter/src/components/ui/ && rm -rf /d/repos/spotiposter/@)",
       "Bash(npx vite:*)",
       "Bash(npm uninstall:*)",
-      "Bash(ls D:/repos/spotiposter/README.md 2>/dev/null; echo \"exit: $?\")"
+      "Bash(ls D:/repos/spotiposter/README.md 2>/dev/null; echo \"exit: $?\")",
+      "Bash(npx next:*)"
     ]
   }
 }

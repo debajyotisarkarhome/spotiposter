@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { searchAlbums, getAlbum, type SpotifyAlbum } from "@/lib/spotify";
 import { Input } from "@/components/ui/input";
@@ -6,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Search, ArrowLeft, Music } from "lucide-react";
 import Poster from "@/components/Poster";
 
-export default function App() {
+export default function Home() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SpotifyAlbum[]>([]);
   const [album, setAlbum] = useState<SpotifyAlbum | null>(null);

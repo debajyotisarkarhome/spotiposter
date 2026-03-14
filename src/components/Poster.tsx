@@ -1,8 +1,12 @@
+"use client";
+
 import { useRef } from "react";
 import { toPng } from "html-to-image";
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { useColors } from "@/hooks/useColors";
+import { useArtwork } from "@/hooks/useArtwork";
 import type { SpotifyAlbum } from "@/lib/spotify";
 
 interface PosterProps {
@@ -19,29 +23,62 @@ function formatAlbumType(type: string) {
   return map[type.toLowerCase()] || type.toUpperCase();
 }
 
+function getBestImage(album: SpotifyAlbum): string | undefined {
+  if (!album.images.length) return undefined;
+  const sorted = [...album.images].sort(
+    (a, b) => (b.width ?? 0) * (b.height ?? 0) - (a.width ?? 0) * (a.height ?? 0)
+  );
+  return sorted[0].url;
+}
+
 export default function Poster({ album }: PosterProps) {
   const posterRef = useRef<HTMLDivElement>(null);
-  const imageUrl = album.images[0]?.url;
+  const spotifyImageUrl = getBestImage(album);
+  const artistName = album.artists.map((a) => a.name).join(", ");
+  const imageUrl = useArtwork(album.name, artistName, spotifyImageUrl);
   const colors = useColors(imageUrl);
 
   const year = album.release_date?.slice(0, 4);
-  const artistName = album.artists.map((a) => a.name).join(", ");
-  const tracks = album.tracks.items;
   const spotifyCode = `https://scannables.scdn.co/uri/plain/png/f0ebe3/black/640/${album.uri}`;
+  const filename = album.name.replace(/[^a-zA-Z0-9]/g, "_");
 
-  const handleDownload = async () => {
-    if (!posterRef.current) return;
+  const getPosterImage = async () => {
+    if (!posterRef.current) return null;
+    return toPng(posterRef.current, {
+      pixelRatio: 4,
+      cacheBust: true,
+    });
+  };
+
+  const handleDownloadPng = async () => {
     try {
-      const dataUrl = await toPng(posterRef.current, {
-        pixelRatio: 3,
-        cacheBust: true,
-      });
+      const dataUrl = await getPosterImage();
+      if (!dataUrl) return;
       const link = document.createElement("a");
-      link.download = `${album.name.replace(/[^a-zA-Z0-9]/g, "_")}_poster.png`;
+      link.download = `${filename}_poster.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error("Export failed:", err);
+      console.error("PNG export failed:", err);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      const dataUrl = await getPosterImage();
+      if (!dataUrl) return;
+      const pdfWidth = 640;
+      const pdfHeight = 900;
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "px",
+        format: [pdfWidth, pdfHeight],
+        hotfixes: ["px_scaling"],
+      });
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${filename}_poster.pdf`);
+    } catch (err) {
+      console.error("PDF export failed:", err);
     }
   };
 
@@ -61,65 +98,17 @@ export default function Poster({ album }: PosterProps) {
       >
         {/* Album art section */}
         <div style={{ padding: "24px 24px 0 24px" }}>
-          <div className="relative">
-            <img
-              src={imageUrl}
-              alt={album.name}
-              crossOrigin="anonymous"
-              style={{
-                width: "100%",
-                aspectRatio: "1",
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
-            {/* Track list overlay on bottom of image */}
-            <div
-              className="absolute left-0 right-0 bottom-0"
-              style={{
-                background:
-                  "linear-gradient(transparent, rgba(0,0,0,0.65) 30%)",
-                padding: "40px 20px 16px",
-              }}
-            >
-              {tracks.slice(0, 8).map((track) => (
-                <div
-                  key={track.id}
-                  className="flex items-center gap-2"
-                  style={{
-                    fontSize: 11,
-                    lineHeight: "20px",
-                    color: "#fff",
-                    fontWeight: 500,
-                  }}
-                >
-                  <span style={{ minWidth: 18, fontWeight: 700 }}>
-                    {track.track_number}
-                  </span>
-                  <span
-                    style={{
-                      flex: 1,
-                      height: 1,
-                      background: "rgba(255,255,255,0.4)",
-                    }}
-                  />
-                  <span>{track.name}</span>
-                </div>
-              ))}
-              {tracks.length > 8 && (
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: "rgba(255,255,255,0.6)",
-                    marginTop: 4,
-                    textAlign: "right",
-                  }}
-                >
-                  +{tracks.length - 8} more
-                </div>
-              )}
-            </div>
-          </div>
+          <img
+            src={imageUrl}
+            alt={album.name}
+            crossOrigin="anonymous"
+            style={{
+              width: "100%",
+              aspectRatio: "1",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
         </div>
 
         {/* Bottom metadata section */}
@@ -191,11 +180,17 @@ export default function Poster({ album }: PosterProps) {
         </div>
       </div>
 
-      {/* Download button */}
-      <Button onClick={handleDownload} size="lg" className="gap-2">
-        <Download className="w-4 h-4" />
-        Download Poster
-      </Button>
+      {/* Download buttons */}
+      <div className="flex gap-3">
+        <Button onClick={handleDownloadPng} size="lg" className="gap-2">
+          <Download className="w-4 h-4" />
+          Download PNG
+        </Button>
+        <Button onClick={handleDownloadPdf} size="lg" variant="outline" className="gap-2">
+          <FileText className="w-4 h-4" />
+          Download PDF
+        </Button>
+      </div>
     </div>
   );
 }
