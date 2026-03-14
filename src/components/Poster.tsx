@@ -67,15 +67,27 @@ export default function Poster({ album }: PosterProps) {
     try {
       const dataUrl = await getPosterImage();
       if (!dataUrl) return;
-      const pdfWidth = 640;
-      const pdfHeight = 900;
       const pdf = new jsPDF({
         orientation: "portrait",
-        unit: "px",
-        format: [pdfWidth, pdfHeight],
-        hotfixes: ["px_scaling"],
+        unit: "mm",
+        format: "a4",
       });
-      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      // Fill A4 with poster background color
+      pdf.setFillColor(240, 235, 227);
+      pdf.rect(0, 0, pageWidth, pageHeight, "F");
+      // Center the poster on A4, maintaining aspect ratio (640:900)
+      const posterRatio = 640 / 900;
+      let imgWidth = pageWidth;
+      let imgHeight = imgWidth / posterRatio;
+      if (imgHeight > pageHeight) {
+        imgHeight = pageHeight;
+        imgWidth = imgHeight * posterRatio;
+      }
+      const x = (pageWidth - imgWidth) / 2;
+      const y = (pageHeight - imgHeight) / 2;
+      pdf.addImage(dataUrl, "PNG", x, y, imgWidth, imgHeight);
       pdf.save(`${filename}_poster.pdf`);
     } catch (err) {
       console.error("PDF export failed:", err);
