@@ -8,7 +8,10 @@
       "Bash(npx vite:*)",
       "Bash(npm uninstall:*)",
       "Bash(ls D:/repos/spotiposter/README.md 2>/dev/null; echo \"exit: $?\")",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(curl:*)",
+      "Bash(cd:*)",
+      "Bash(taskkill:*)"
     ]
   }
 }
