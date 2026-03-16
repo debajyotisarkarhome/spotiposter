@@ -253,6 +253,10 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      <footer className="border-t border-border/40 py-6 text-center text-sm text-muted-foreground">
+        Made with ❤️ by Debajyoti Sarkar
+      </footer>
     </div>
   );
 }
